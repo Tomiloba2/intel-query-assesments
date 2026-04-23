@@ -7,3 +7,5 @@ const router = express.Router()
 
 router.route("/profiles").get(getProfiles)
 router.route("/profiles/search").get(searchProfiles)
+
+export default router

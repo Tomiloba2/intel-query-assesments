@@ -1,6 +1,7 @@
 import "dotenv/config"
 import express, { Application, NextFunction, Response, Request } from "express"
 import cors from "cors"
+import router from "./src/routes.js"
 
 
 const app: Application = express()
@@ -14,6 +15,7 @@ app.use(express.urlencoded({
     extended: true
 }))
 
+app.use("/api", router)
 
 /* errorHandler middleware */
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
