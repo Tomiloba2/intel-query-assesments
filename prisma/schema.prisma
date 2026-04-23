@@ -21,7 +21,7 @@ enum AgeGroup {
   child
   teenager
   adult
-  senoir
+  senior
 }
 
 model Profiles {
