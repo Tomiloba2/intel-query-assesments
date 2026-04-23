@@ -1,5 +1,6 @@
 import { NextFunction, Response, Request } from "express";
 import prisma from "../prisma.js";
+import { Prisma } from "../generated/prisma/client.js";
 
 
 export async function getProfiles(req: Request, res: Response, next: NextFunction) {
@@ -12,43 +13,69 @@ export async function getProfiles(req: Request, res: Response, next: NextFunctio
         }: any = req.query
 
         const queryFilters: any = {}
-        queryFilters.gender = {
-            contains: gender,
-            mode: "insensitive"
-        }
-        queryFilters.country_id = country_id && country_id
-        queryFilters.age_group = age_group && age_group
-        queryFilters.age.gte = min_age && parseInt(min_age) && parseInt(min_age)
-        queryFilters.age.lte = max_age && parseInt(max_age) && parseInt(max_age)
-        queryFilters.country_probability.gte = min_country_probability && parseFloat(min_country_probability) && parseFloat(min_country_probability)
-        queryFilters.gender_probability.gte = min_gender_probability && parseFloat(min_gender_probability) && parseFloat(min_gender_probability)
 
-        //sort by and order 
-        const validSortByFields: any = ["age", "gender_probabilty", "created_at"]
+        queryFilters.age = {}
+        queryFilters.gender_probability = {}
+        queryFilters.country_probability = {}
+
+        // ---- Filters ----
+        if (gender) {
+            queryFilters.gender =gender
+        }
+
+        if (country_id) queryFilters.country_id = country_id
+        if (age_group) queryFilters.age_group = age_group
+
+        if (min_age) {
+            const val = parseInt(min_age)
+            if (!isNaN(val)) queryFilters.age.gte = val
+        }
+
+        if (max_age) {
+            const val = parseInt(max_age)
+            if (!isNaN(val)) queryFilters.age.lte = val
+        }
+
+        if (min_gender_probability) {
+            const val = parseFloat(min_gender_probability)
+            if (!isNaN(val)) queryFilters.gender_probability.gte = val
+        }
+
+        if (min_country_probability) {
+            const val = parseFloat(min_country_probability)
+            if (!isNaN(val)) queryFilters.country_probability.gte = val
+        }
+
+        // ---- Sorting ----
+        const validSortByFields = ["age", "gender_probability", "created_at"]
+
         if (sort_by && !validSortByFields.includes(sort_by)) {
-            const err = new Error("Invalid query parameters") as any
+            const err = new Error("Invalid sort_by field") as any
             err.statusCode = 400
             return next(err)
         }
-        const orderBy: any = sort_by && order ? { sort_by: order } : {
-            created_at: "desc"
-        }
 
-        /* -----limit and pagination--------- */
+        const orderBy:Prisma.ProfilesOrderByWithRelationInput  = sort_by
+            ? { [sort_by]: order === "asc" ? "asc" : "desc" }
+            : { created_at: "desc" }
+
+        // ---- Pagination ----
         let take = parseInt(limit)
         if (isNaN(take) || take < 1) take = 10
         if (take > 50) take = 50
+
         let currentPage = parseInt(page)
         if (isNaN(currentPage) || currentPage < 1) currentPage = 1
-        const skip = (currentPage - 1) * take
 
+        const skip = (currentPage - 1) * take
 
         const data = await prisma.profiles.findMany({
             where: queryFilters,
-            skip: skip,
-            take: take,
-            orderBy: orderBy
+            skip,
+            take,
+            orderBy
         })
+
         return res.status(200).json({
             status: "success",
             page: currentPage,
@@ -56,8 +83,9 @@ export async function getProfiles(req: Request, res: Response, next: NextFunctio
             total: data.length,
             data
         })
+
     } catch (error: any) {
-        const err = new Error(error.message) as any;
+        const err = new Error(error.message) as any
         err.statusCode = 500
         return next(err)
     }
