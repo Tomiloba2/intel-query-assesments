@@ -7,6 +7,7 @@ import { authenticate } from "./src/utils/guard.js"
 import cookieParser from "cookie-parser"
 import passport from './src/utils/passport.js'
 import { versionMiddleware } from "./src/utils/version.js"
+import morgan from "morgan"
 import { apilimiter, authlimiter } from "./src/utils/rateLimit.js"
 
 const app: Application = express()
@@ -23,6 +24,8 @@ app.use(express.urlencoded({
 app.use(cookieParser())
 
 app.use(passport.initialize())
+app.use(morgan(':method :url :status :response-time ms'));
+
 
 app.use("/auth", authlimiter, authRouter)
 app.use("/api", apilimiter, authenticate, versionMiddleware, router)
