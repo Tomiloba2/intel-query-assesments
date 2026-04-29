@@ -1,15 +1,15 @@
 import { NextFunction, Response, Request } from "express";
 import prisma from "../prisma.js";
 import { Prisma } from "../generated/prisma/client.js";
+import { Parser } from "json2csv"
 
-
-export async function getProfiles(req: Request, res: Response, next: NextFunction) {
+export async function getProfilesCsv(req: Request, res: Response, next: NextFunction) {
     try {
         const {
             gender, age_group, country_id, min_age, max_age,
             min_gender_probability, min_country_probability,
             sort_by, order,
-            page, limit
+            page, limit, format
         }: any = req.query
 
         const queryFilters: any = {}
@@ -75,6 +75,21 @@ export async function getProfiles(req: Request, res: Response, next: NextFunctio
             take,
             orderBy
         })
+
+        if (format && format === "csv") {
+
+            const fields = [
+                "id", "name", "gender", "gender_probability", "age", "age_group", "country_id",
+                "country_name", "country_probability", "created_at"
+            ]
+            const parser = new Parser({ fields })
+            const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+            const csv = parser.parse(data)
+            res.header('Content-Type', "text/csv")
+            res.attachment(`profiels_${timestamp}.csv`)
+            return res.status(200).send(csv)
+        }
+
         const total = await prisma.profiles.findMany()
         const total_pages = total.length / take
         const self = `/api/profiles?page=${currentPage}&limit=${take}`
@@ -94,6 +109,7 @@ export async function getProfiles(req: Request, res: Response, next: NextFunctio
             },
             data
         })
+
 
     } catch (error: any) {
         const err = new Error(error.message) as any

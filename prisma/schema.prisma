@@ -24,6 +24,34 @@ enum AgeGroup {
   senior
 }
 
+model User {
+  id            String         @id @default(uuid(7))
+  githubId      String         @unique @map("github_id")
+  username      String         @unique
+  email         String?
+  avatarUrl     String?        @map("avatar_url")
+  role          Role           @default(analyst)
+  isActive      Boolean        @default(true) @map("is_active")
+  lastLoginAt   DateTime?      @map("last_login_at")
+  createdAt     DateTime       @default(now()) @map("created_at")
+  refreshTokens refreshToken[]
+
+  @@map("users")
+}
+
+enum Role {
+  admin
+  analyst
+}
+
+model refreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime // 5 minutes
+}
+
 model Profiles {
   id                  String   @id @default(uuid(7))
   name                String   @unique
