@@ -47,20 +47,29 @@ export const githubCallback = async (req: Request, res: Response, next: NextFunc
         }
     });
 
-    res.cookie('accessToken', accessToken, {
+    res.cookie('access_token', accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
         maxAge: 3 * 60 * 1000 // 3 minutes
     });
-    res.cookie('refreshToken', refreshToken, {
+    res.cookie('refresh_token', refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
         maxAge: 5 * 60 * 1000 // 5 minutes
     });
 
-    return res.redirect(`${process.env.FRONTEND_URL}/dashboard`);
+    return res.status(200).json({
+        status: "success",
+        access_token: accessToken,
+        refresh_token: refreshToken,
+        user: {
+            id: user.id,
+            username: user.username,
+            role: user.role
+        }
+    });
 
 };
 
