@@ -10,7 +10,7 @@ export interface TokenPayload {
 
 export const generateAccessToken = (user: any): string => {
     return jwt.sign(
-        { userId: user.id, role: user.role, type: 'access' },
+        { userId: user.id, username:user.username, role: user.role, type: 'access' },
         JWT_SECRET,
         { expiresIn: '3m' }
     );
@@ -18,9 +18,9 @@ export const generateAccessToken = (user: any): string => {
 
 export const generateRefreshToken = (user: any): string => {
     return jwt.sign(
-        { userId: user.id, role: user.role, type: 'refresh' },
+        { userId: user.id, username:user.username, role: user.role, type: 'refresh' },
         JWT_SECRET,
-        { expiresIn: '5m' }
+        { expiresIn: '15m' }
     );
 };
 
