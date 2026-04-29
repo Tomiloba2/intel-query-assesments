@@ -47,7 +47,12 @@ export const githubCallback = async (req: Request, res: Response, next: NextFunc
         }
     });
 
-    // In production: set httpOnly cookie + return in body
+    res.cookie('accessToken', accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 3 * 60 * 1000 // 3 minutes
+    });
     res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
@@ -55,12 +60,8 @@ export const githubCallback = async (req: Request, res: Response, next: NextFunc
         maxAge: 5 * 60 * 1000 // 5 minutes
     });
 
-    res.json({
-        status: 'success',
-        access_token: accessToken,
-        // Do NOT return refresh_token in body in production (use cookie)
-        refresh_token: refreshToken // only for dev
-    });
+    return res.redirect(`${process.env.FRONTEND_URL}/dashboard`);
+
 };
 
 export const refreshToken = async (req: Request, res: Response, next: NextFunction) => {

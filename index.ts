@@ -7,11 +7,13 @@ import { authenticate } from "./src/utils/guard.js"
 import cookieParser from "cookie-parser"
 import passport from './src/utils/passport.js'
 import { versionMiddleware } from "./src/utils/version.js"
+import { apilimiter, authlimiter } from "./src/utils/rateLimit.js"
 
 const app: Application = express()
 
 app.use(cors({
-    origin: "*"
+    origin: "*",
+    credentials: true
 }))
 
 app.use(express.json({ limit: "10mb" }))
@@ -22,8 +24,8 @@ app.use(cookieParser())
 
 app.use(passport.initialize())
 
-app.use("/auth", authRouter)
-app.use("/api", authenticate, versionMiddleware, router)
+app.use("/auth", authlimiter, authRouter)
+app.use("/api", apilimiter, authenticate, versionMiddleware, router)
 
 /* errorHandler middleware */
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
