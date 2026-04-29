@@ -11,6 +11,6 @@ const router = Router();
 router.route('/profiles').post(requireRole(["admin"]), createProfile)
 router.route("/profiles").get(getProfiles)
 router.route("/profiles/search").get(searchProfiles)
-router.route("/api/profiles/export").get(getProfilesCsv)
+router.route("/profiles/export").get(getProfilesCsv)
 
 export default router
