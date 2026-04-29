@@ -20,7 +20,7 @@ export async function getProfiles(req: Request, res: Response, next: NextFunctio
 
         // ---- Filters ----
         if (gender) {
-            queryFilters.gender =gender
+            queryFilters.gender = gender
         }
 
         if (country_id) queryFilters.country_id = country_id
@@ -55,7 +55,7 @@ export async function getProfiles(req: Request, res: Response, next: NextFunctio
             return next(err)
         }
 
-        const orderBy:Prisma.ProfilesOrderByWithRelationInput  = sort_by
+        const orderBy: Prisma.ProfilesOrderByWithRelationInput = sort_by
             ? { [sort_by]: order === "asc" ? "asc" : "desc" }
             : { created_at: "desc" }
 
@@ -75,12 +75,23 @@ export async function getProfiles(req: Request, res: Response, next: NextFunctio
             take,
             orderBy
         })
+        const total = await prisma.profiles.findMany()
+        const total_pages = total.length / take
+        const self = `/api/profiles?page=${currentPage}&limit=${take}`
+        const nextLink = `/api/profiles?page=${currentPage + 1}&limit=${take}`
+        const prev = currentPage === 1 ? null : `/api/profiles?page=${currentPage - 1}&limit=${take}`
 
         return res.status(200).json({
             status: "success",
             page: currentPage,
             limit: take,
-            total: data.length,
+            total: total.length,
+            total_pages,
+            links: {
+                self,
+                next: nextLink,
+                prev
+            },
             data
         })
 

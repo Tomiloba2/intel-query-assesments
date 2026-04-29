@@ -74,9 +74,9 @@ function parseNaturalLanguageQuery(query: any) {
         where.age = { gte: parseInt(ageRange[1]), lte: parseInt(ageRange[2]) };
     }
 
-    
+
     // AGE — comparison: "above 30", "below 17", "older than 25"
-    
+
     const above = lower.match(/(?:above|over|older than|greater than|more than)\s*(\d+)/);
     const below = lower.match(/(?:below|under|younger than|less than)\s*(\d+)/);
 
@@ -86,9 +86,9 @@ function parseNaturalLanguageQuery(query: any) {
         where.age = { lt: parseInt(below[1]) };
     }
 
-    
+
     // COUNTRY — "from Kenya", "in Angola", "based in Ghana"
-    
+
     const countryMatch = lower.match(
         /(?:from|in|country is|living in|based in|located in)\s+([a-z\s]+?)(?:\s+(?:who|and|with|age[d]?|that|above|below|older|younger|between)|$)/i
     );
@@ -96,9 +96,9 @@ function parseNaturalLanguageQuery(query: any) {
         where.country_name = { contains: countryMatch[1].trim(), mode: "insensitive" };
     }
 
-    
+
     // NAME — "named John", "called Jane", "name is Sam"
-    
+
     const nameMatch = lower.match(/(?:named?|called|name is)\s+([a-z]+)/i);
     if (nameMatch) {
         where.name = { contains: nameMatch[1], mode: "insensitive" };
@@ -110,7 +110,7 @@ function parseNaturalLanguageQuery(query: any) {
 
 export async function searchProfiles(req: Request, res: Response, next: NextFunction) {
     try {
-        const { q } = req.query;
+        const { q, page, limit }: any = req.query;
 
         if (!q) {
             const err = new Error("Invalid query parameters") as any
@@ -125,12 +125,39 @@ export async function searchProfiles(req: Request, res: Response, next: NextFunc
             err.statusCode = 422
             return next(err)
         }
+        // ---- Pagination ----
+        let take = parseInt(limit)
+        if (isNaN(take) || take < 1) take = 10
+        if (take > 50) take = 50
 
-        const results = await prisma.profiles.findMany({ where });
+        let currentPage = parseInt(page)
+        if (isNaN(currentPage) || currentPage < 1) currentPage = 1
+
+        const skip = (currentPage - 1) * take
+
+
+        const results = await prisma.profiles.findMany({
+            where,
+            skip,
+            take,
+        });
+        const total = await prisma.profiles.findMany()
+        const total_pages = total.length / take
+        const self = `/api/profiles/search?page=${currentPage}&limit=${take}`
+        const nextLink = `/api/profiles/search?page=${currentPage + 1}&limit=${take}`
+        const prev = currentPage === 1 ? null : `/api/profiles/search?page=${currentPage - 1}&limit=${take}`
 
         return res.status(200).json({
             status: "success",
-            total: results.length,
+            page: currentPage,
+            limit: take,
+            total: total.length,
+            total_pages,
+            links: {
+                self,
+                next: nextLink,
+                prev
+            },
             data: results
         })
 

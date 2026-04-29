@@ -6,6 +6,7 @@ import authRouter from "./src/routes/auth.js"
 import { authenticate } from "./src/utils/guard.js"
 import cookieParser from "cookie-parser"
 import passport from './src/utils/passport.js'
+import { versionMiddleware } from "./src/utils/version.js"
 
 const app: Application = express()
 
@@ -22,7 +23,7 @@ app.use(cookieParser())
 app.use(passport.initialize())
 
 app.use("/auth", authRouter)
-app.use("/api", authenticate, router)
+app.use("/api", authenticate, versionMiddleware, router)
 
 /* errorHandler middleware */
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
