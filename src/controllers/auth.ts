@@ -196,22 +196,22 @@ export const githubCallback = async (req: Request, res: Response, next: NextFunc
 
 export const refreshToken = async (req: Request, res: Response, next: NextFunction) => {
 
-    // ENFORCE POST method
-    if (req.method !== "POST") {
-        return res.status(405).json({
-            status: 'error',
-            message: 'Method not allowed. Use POST.'
-        });
-    }
-    const { refresh_token } = req.body;
-
-    if (!refresh_token) {
-        const err = new Error("Refresh token required") as any
-        err.statusCode = 400
-        return next(err)
-    }
-
     try {
+
+        // ENFORCE POST method
+        if (req.method !== "POST") {
+            return res.status(405).json({
+                status: 'error',
+                message: 'Method not allowed. Use POST.'
+            });
+        }
+        const { refresh_token } = req.body;
+
+        if (!refresh_token) {
+            const err = new Error("Refresh token required") as any
+            err.statusCode = 400
+            return next(err)
+        }
         const payload = verifyToken(refresh_token);
 
         if (payload.type !== 'refresh') {
@@ -264,11 +264,11 @@ export const refreshToken = async (req: Request, res: Response, next: NextFuncti
             maxAge: 5 * 60 * 1000
         });
 
-        res.status(200).json({
+        return res.status(200).json({
             status: 'success',
             access_token: newAccessToken,
             refresh_token: newRefreshToken
-        });
+        })
 
     } catch (error) {
         const err = new Error("Invalid refresh token") as any;

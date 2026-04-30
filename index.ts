@@ -31,6 +31,13 @@ app.get('/access',getToken)
 app.use("/auth", authRouter)
 app.use("/api", router)
 
+app.use((req, res, next) => {
+  const err = new Error('Route Not Found') as any;
+  err.statusCode = 404;
+  next(err);
+});
+
+
 /* errorHandler middleware */
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     const status = err.statusCode ? err.statusCode : 500

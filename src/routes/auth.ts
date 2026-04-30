@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import passport from 'passport';
 import { githubCallback, refreshToken, logout, failedLogin } from '../controllers/auth.js';
-import {  authlimiter } from '../utils/rateLimit.js';
+import {  authlimiter, authRateLimit } from '../utils/rateLimit.js';
 
 const authRouter = Router();
 
@@ -14,8 +14,8 @@ authRouter.get('/github/callback', authlimiter,
     githubCallback
 );
 
-authRouter.post('/refresh', authlimiter, refreshToken);
-authRouter.post('/logout', authlimiter, logout);
-authRouter.get("/error", authlimiter, failedLogin)
+authRouter.post('/refresh', authRateLimit, refreshToken);
+authRouter.post('/logout', authRateLimit, logout);
+authRouter.get("/error", authRateLimit, failedLogin)
 
 export default authRouter;
