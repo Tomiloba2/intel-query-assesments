@@ -28,8 +28,8 @@ app.use(passport.initialize())
 app.use(morgan(':method :url :status :response-time ms'));
 
 app.get('/access',getToken)
-app.use("/auth", authlimiter, authRouter)
-app.use("/api", apilimiter, authenticate, versionMiddleware, router)
+app.use("/auth", authRouter)
+app.use("/api", router)
 
 /* errorHandler middleware */
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
