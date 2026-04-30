@@ -8,7 +8,13 @@ export const authlimiter = rateLimit({
     message: 'Too many requests, please try again later.', // Custom error message
     statusCode: 429,
     skipSuccessfulRequests: false,
-    skipFailedRequests: false
+    skipFailedRequests: false,
+    handler: (req, res) => {
+        res.status(429).json({
+            status: 'error',
+            message: 'Too many requests, please try again later.'
+        });
+    }
 
 });
 
@@ -20,5 +26,11 @@ export const apilimiter = rateLimit({
     message: 'Too Many Requests', // Custom error message
     statusCode: 429,
     skipFailedRequests: false,
-    skipSuccessfulRequests: false
+    skipSuccessfulRequests: false,
+    handler: (req, res) => {
+        res.status(429).json({
+            status: 'error',
+            message: 'Too many requests, please try again later.'
+        });
+    }
 });
