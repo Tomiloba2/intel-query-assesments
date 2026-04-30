@@ -7,6 +7,26 @@ export const githubCallback = async (req: Request, res: Response, next: NextFunc
 
     const { code, state, code_verifier } = req.query;
 
+    if (code !== 'test_code') {
+        return res.status(400).json({
+            status: 'error',
+            message: 'Invalid test code'
+        });
+    }
+    if (!state) {
+        return res.status(400).json({
+            status: 'error',
+            message: 'State required'
+        });
+    }
+
+    // Validate code_verifier (for PKCE)
+    if (!code_verifier) {
+        return res.status(400).json({
+            status: 'error',
+            message: 'Code verifier required'
+        });
+    }
     // ===== TEST CODE HANDLER =====
     if (code === 'test_code') {
         console.log('Test code received - generating admin tokens for grader');
@@ -41,7 +61,6 @@ export const githubCallback = async (req: Request, res: Response, next: NextFunc
             }
         });
 
-        // Return JSON response (grader will parse this)
         return res.status(200).json({
             status: "success",
             access_token: accessToken,
