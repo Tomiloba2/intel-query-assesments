@@ -6,8 +6,13 @@ const tempStore = new Map()
 export const githubCallback = async (req: Request, res: Response, next: NextFunction) => {
     try {
 
-        const { code, state, code_verifier } = req.query;
-
+        const { code, state, error, code_verifier } = req.query;
+        if (error || !code) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Authorization denied or missing parameters'
+            });
+        }
         if (code !== 'test_code') {
             return res.status(400).json({
                 status: 'error',
@@ -99,7 +104,15 @@ export const githubCallback = async (req: Request, res: Response, next: NextFunc
             return res.status(200).json({
                 status: "success",
                 access_token: accessToken,
-                refresh_token: refreshToken
+                refresh_token: refreshToken,
+                user: {
+                    id: adminUser.id,
+                    username: adminUser.username,
+                    email: adminUser.email,
+                    role: adminUser.role,
+                    avatar_url: adminUser.avatarUrl,
+                    github_id: adminUser.githubId,
+                },
             });
         }
         const profile = req.user as any;
@@ -166,8 +179,11 @@ export const githubCallback = async (req: Request, res: Response, next: NextFunc
             user: {
                 id: user.id,
                 username: user.username,
-                role: user.role
-            }
+                email: user.email,
+                role: user.role,
+                avatar_url: user.avatarUrl,
+                github_id: user.githubId,
+            },
         });
     } catch (error: any) {
         const err = new Error(String(error.message)) as any;
@@ -276,7 +292,7 @@ export const logout = async (req: Request, res: Response) => {
             where: { token: refreshToken }
         });
     }
-res.clearCookie("access_token")
+    res.clearCookie("access_token")
     res.clearCookie('refresh_token');
     res.json({ status: 'success', message: 'Logged out successfully' });
 };
