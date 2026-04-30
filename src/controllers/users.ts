@@ -9,15 +9,31 @@ import { generateAccessToken, generateRefreshToken } from "../utils/token.js";
 export async function fetchUser(req: Request, res: Response, next: NextFunction) {
     try {
         const user: any = req.user
+        if (!user) {
+            return res.status(401).json({
+                status: 'error',
+                message: 'Unauthorized'
+            });
+        }
 
-        const data = await prisma.user.findUnique({
+        const data = await prisma.user.findUniqueOrThrow({
             where: {
                 id: user?.id
             }
         })
         return res.json({
             status: "success",
-            data
+            data: {
+                id: data.id,
+                github_id: data.githubId,  
+                username: data.username,
+                email: data.email,
+                avatar_url: data.avatarUrl,
+                role: data.role,
+                is_active: data.isActive,
+                last_login_at: data.lastLoginAt,
+                created_at: data.createdAt
+            }
         })
     } catch (error: any) {
         const err = new Error(error.message) as any;
@@ -36,6 +52,7 @@ export async function getToken(req: Request, res: Response, next: NextFunction) 
         const refresh_token = generateRefreshToken({
             id: "019ddb2a-d59d-73cc-8796-c795357c5b86",
             username: "tomi",
+            githubId:"",
             role: "analyst"
         })
         const isExist = await prisma.refreshToken.findFirst({

@@ -3,7 +3,10 @@ name: Backend CI
 on:
   pull_request:
     branches:
-      - main
+      - master  # Change from 'main' to 'master'
+  push:
+    branches:
+      - master  # Change from 'main' to 'master'
 
 jobs:
   test:
@@ -21,6 +24,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
+          cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
